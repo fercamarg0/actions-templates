@@ -66,7 +66,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          pip install -r "${{ inputs["requirements-file"] }}" || true
+          pip install -r "${{ inputs["requirements-file"] }}"
           pip install ruff pytest
 
       - name: Lint with Ruff

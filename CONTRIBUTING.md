@@ -1,155 +1,155 @@
-# Contributing to actions-templates
+# Contributing
 
-Obrigado por considerar contribuir com actions-templates! 🎉
+Thank you for considering contributing to actions-templates.
 
-## Como Contribuir
+## How to Contribute
 
-### Reportar Bugs ou Sugerir Features
+### Report Bugs or Suggest Features
 
-1. Verifique se já existe uma issue similar
-2. Crie uma nova issue com:
-   - **Bug**: Descrição clara, steps para reproduzir, comportamento esperado vs atual
-   - **Feature**: Descrição do caso de uso, benefícios esperados
+1. Check if a similar issue already exists
+2. Create a new issue with:
+   - **Bug**: Clear description, steps to reproduce, expected vs actual behavior
+   - **Feature**: Use case description, expected benefits
 
-### Contribuir com Código
+### Contributing Code
 
-1. **Fork** o repositório
-2. **Clone** seu fork localmente
-3. **Crie uma branch** para sua feature/fix:
+1. Fork the repository
+2. Clone your fork locally
+3. Create a branch:
    ```bash
-   git checkout -b feat/nome-da-feature
+   git checkout -b feat/feature-name
    ```
-4. **Faça suas alterações**:
-   - Siga as convenções de código existentes
-   - Teste seus workflows em um repositório de teste
-   - Adicione exemplos de uso em `examples/`
-5. **Commit** com mensagens claras (Conventional Commits):
+4. Make your changes:
+   - Follow existing code conventions
+   - Test workflows in a test repository
+   - Add usage examples in `examples/`
+5. Commit with clear messages (Conventional Commits):
    ```
-   feat: adicionar workflow de terraform
-   fix: corrigir cache do docker build
-   docs: atualizar README com exemplo de kubernetes
+   feat: add terraform workflow
+   fix: fix docker build cache
+   docs: update README with kubernetes example
    ```
-6. **Push** para seu fork
-7. **Abra um Pull Request** com:
-   - Descrição clara das mudanças
-   - Referência a issues relacionadas
-   - Exemplos de uso do novo workflow
+6. Push to your fork
+7. Open a Pull Request with:
+   - Clear description of changes
+   - Reference to related issues
+   - Usage examples
 
-## Diretrizes para Workflows
+## Workflow Guidelines
 
-### Estrutura de um Workflow Reutilizável
+### Reusable Workflow Structure
 
 ```yaml
-name: Nome Descritivo (Reusable)
+name: Descriptive Name (Reusable)
 
 on:
   workflow_call:
     inputs:
       param-name:
-        description: "Descrição clara do parâmetro"
+        description: "Clear parameter description"
         required: true/false
         type: string
-        default: "valor-padrao"  # se não for required
+        default: "default-value"  # if not required
     secrets:
       secret-name:
-        description: "Descrição clara do secret"
+        description: "Clear secret description"
         required: true/false
 
 jobs:
   job-name:
     runs-on: ubuntu-latest
-    permissions:  # Sempre especifique as permissões mínimas necessárias
+    permissions:  # Always specify minimum required permissions
       contents: read
     steps:
-      - uses: actions/checkout@v4  # Use sempre as versões mais recentes
-      # ... resto dos steps
+      - uses: actions/checkout@v4  # Always use latest versions
+      # ... other steps
 ```
 
-### Boas Práticas
+### Best Practices
 
-1. **Inputs bem documentados**:
-   - Sempre adicione `description`
-   - Use `required: false` com `default` quando apropriado
-   - Tipos corretos (`string`, `boolean`, `number`)
+1. **Well-documented inputs**:
+   - Always add `description`
+   - Use `required: false` with `default` when appropriate
+   - Correct types (`string`, `boolean`, `number`)
 
-2. **Secrets seguros**:
-   - Nunca faça echo/print de secrets
-   - Use `required: true` apenas se realmente necessário
+2. **Secure secrets**:
+   - Never echo/print secrets
+   - Use `required: true` only when necessary
 
-3. **Permissões mínimas**:
-   - Especifique explicitamente as `permissions` necessárias
-   - Use `contents: read` como padrão
-   - Adicione `write` apenas quando necessário
+3. **Minimum permissions**:
+   - Explicitly specify required `permissions`
+   - Use `contents: read` as default
+   - Add `write` only when needed
 
-4. **Versões fixas**:
-   - Use versões específicas de actions: `@v4`, `@v3`
-   - Prefira SHA commits para máxima segurança em produção
+4. **Fixed versions**:
+   - Use specific action versions: `@v4`, `@v3`
+   - Prefer SHA commits for maximum security
 
-5. **Cache inteligente**:
-   - Use cache do GitHub Actions quando aplicável
-   - Cache de dependências, build artifacts, etc.
+5. **Smart caching**:
+   - Use GitHub Actions cache when applicable
+   - Cache dependencies, build artifacts, etc.
 
-6. **Outputs úteis**:
-   - Exponha informações úteis como outputs do job
-   - Documente os outputs no README
+6. **Useful outputs**:
+   - Expose useful information as job outputs
+   - Document outputs in README
 
-### Testando Workflows
+### Testing Workflows
 
-Antes de submeter um PR, teste seu workflow em um repositório de teste:
+Before submitting a PR, test your workflow in a test repository:
 
-1. Crie um repositório de teste
-2. Adicione o workflow que usa seu template:
+1. Create a test repository
+2. Add workflow using your template:
    ```yaml
-   uses: SEU_USUARIO/actions-templates/.github/workflows/SEU_WORKFLOW.yml@SUA_BRANCH
+   uses: YOUR_USER/actions-templates/.github/workflows/YOUR_WORKFLOW.yml@YOUR_BRANCH
    ```
-3. Teste diferentes combinações de inputs
-4. Verifique logs de execução
-5. Confirme que funciona em PRs, pushes, etc.
+3. Test different input combinations
+4. Check execution logs
+5. Confirm it works on PRs, pushes, etc.
 
-### Exemplos
+### Examples
 
-Sempre adicione um exemplo em `examples/`:
+Always add an example in `examples/`:
 
 ```yaml
-# examples/seu-workflow.yml
-name: Exemplo de Uso
+# examples/your-workflow.yml
+name: Usage Example
 
 on: [push, pull_request]
 
 jobs:
-  exemplo:
-    uses: fercamarg0/actions-templates/.github/workflows/seu-workflow.yml@v2
+  example:
+    uses: fercamarg0/actions-templates/.github/workflows/your-workflow.yml@v2
     with:
-      input1: valor1
-      input2: valor2
+      input1: value1
+      input2: value2
     secrets:
       secret1: ${{ secrets.SECRET1 }}
 ```
 
 ## Code Review
 
-Todos os PRs passam por code review. Buscamos:
+All PRs go through code review. We look for:
 
-- ✅ Código limpo e bem documentado
-- ✅ Workflows testados e funcionando
-- ✅ README atualizado com novo workflow
-- ✅ Exemplo de uso adicionado
-- ✅ Sem hardcoded values ou secrets expostos
-- ✅ Permissões mínimas necessárias
-- ✅ Compatibilidade com versões anteriores (quando aplicável)
+- Clean and well-documented code
+- Tested and working workflows
+- Updated README with new workflow
+- Usage example added
+- No hardcoded values or exposed secrets
+- Minimum required permissions
+- Backward compatibility (when applicable)
 
-## Versionamento
+## Versioning
 
-Seguimos [Semantic Versioning](https://semver.org/):
+We follow [Semantic Versioning](https://semver.org/):
 
-- **v2.0.0**: Breaking changes (incompatível com v1)
-- **v2.1.0**: Novos features (compatível com v2.0)
-- **v2.1.1**: Bug fixes (compatível com v2.1)
+- **v2.0.0**: Breaking changes (incompatible with v1)
+- **v2.1.0**: New features (compatible with v2.0)
+- **v2.1.1**: Bug fixes (compatible with v2.1)
 
-## Dúvidas?
+## Questions?
 
-Abra uma issue ou discussion no GitHub!
+Open an issue or discussion on GitHub.
 
 ---
 
-**Código de Conduta**: Todos os contribuidores devem seguir nosso [Code of Conduct](CODE_OF_CONDUCT.md).
+**Code of Conduct**: All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md).

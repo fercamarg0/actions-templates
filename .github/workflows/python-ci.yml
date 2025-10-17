@@ -52,13 +52,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs["python-version"] }}
+          python-version: ${{ inputs.python-version }}
 
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles(inputs["requirements-file"]) }}
+          key: ${{ runner.os }}-pip-${{ hashFiles(inputs.requirements-file) }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -66,15 +66,15 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          pip install -r "${{ inputs["requirements-file"] }}"
+          pip install -r "${{ inputs.requirements-file }}"
           pip install ruff pytest
 
       - name: Lint with Ruff
-        if: ${{ !inputs["skip-lint"] }}
+        if: ${{ !inputs.skip-lint }}
         shell: bash
         run: |
           ruff --version
-          if [ "${{ inputs["allow-ruff-fail"] }}" = "true" ]; then
+          if [ "${{ inputs.allow-ruff-fail }}" = "true" ]; then
             ruff check . --output-format=github || true
           else
             ruff check . --output-format=github
@@ -82,10 +82,10 @@ jobs:
 
       - name: Test with Pytest
         env:
-          SPACES_ENDPOINT: ${{ inputs["spaces-endpoint"] }}
-          DATABASE_URL: ${{ inputs["database-url"] }}
+          SPACES_ENDPOINT: ${{ inputs.spaces-endpoint }}
+          DATABASE_URL: ${{ inputs.database-url }}
           PYTHONWARNINGS: default
         shell: bash
         run: |
-          if [ -n "${{ inputs["set-pythonpath"] }}" ]; then export PYTHONPATH="${{ inputs["set-pythonpath"] }}"; fi
-          pytest ${{ inputs["pytest-args"] }}
+          if [ -n "${{ inputs.set-pythonpath }}" ]; then export PYTHONPATH="${{ inputs.set-pythonpath }}"; fi
+          pytest ${{ inputs.pytest-args }}

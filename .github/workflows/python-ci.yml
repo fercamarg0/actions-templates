@@ -1,0 +1,91 @@
+name: Python Reusable CI
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use"
+        required: true
+        type: string
+      skip-lint:
+        description: "Skip Ruff lint step"
+        required: false
+        default: false
+        type: boolean
+      requirements-file:
+        description: "Path to requirements file"
+        required: false
+        default: "requirements.txt"
+        type: string
+      pytest-args:
+        description: "Arguments to pass to pytest"
+        required: false
+        default: "-q"
+        type: string
+      allow-ruff-fail:
+        description: "Allow ruff to fail without failing the job"
+        required: false
+        default: false
+        type: boolean
+      spaces-endpoint:
+        description: "Optional SPACES_ENDPOINT env"
+        required: false
+        type: string
+      database-url:
+        description: "Optional DATABASE_URL env"
+        required: false
+        type: string
+      set-pythonpath:
+        description: "Optional PYTHONPATH to set before pytest"
+        required: false
+        default: "src"
+        type: string
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs["python-version"] }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles(inputs["requirements-file"]) }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r "${{ inputs["requirements-file"] }}" || true
+          pip install ruff pytest
+
+      - name: Lint with Ruff
+        if: ${{ !inputs["skip-lint"] }}
+        shell: bash
+        run: |
+          ruff --version
+          if [ "${{ inputs["allow-ruff-fail"] }}" = "true" ]; then
+            ruff check . --output-format=github || true
+          else
+            ruff check . --output-format=github
+          fi
+
+      - name: Test with Pytest
+        env:
+          SPACES_ENDPOINT: ${{ inputs["spaces-endpoint"] }}
+          DATABASE_URL: ${{ inputs["database-url"] }}
+          PYTHONWARNINGS: default
+        shell: bash
+        run: |
+          if [ -n "${{ inputs["set-pythonpath"] }}" ]; then export PYTHONPATH="${{ inputs["set-pythonpath"] }}"; fi
+          pytest ${{ inputs["pytest-args"] }}

@@ -1,0 +1,104 @@
+name: Security Scan (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      scan-type:
+        description: "Scan type: fs (filesystem), image, config, repo"
+        required: false
+        default: "fs"
+        type: string
+      severity:
+        description: "Severity levels to report (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)"
+        required: false
+        default: "CRITICAL,HIGH"
+        type: string
+      scan-path:
+        description: "Path to scan (for fs type)"
+        required: false
+        default: "."
+        type: string
+      image-ref:
+        description: "Image reference to scan (for image type)"
+        required: false
+        default: ""
+        type: string
+      dependency-review:
+        description: "Enable dependency review on pull requests"
+        required: false
+        default: true
+        type: boolean
+      fail-on-severity:
+        description: "Fail build on severity level (low, moderate, high, critical)"
+        required: false
+        default: "high"
+        type: string
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: ${{ inputs.scan-type }}
+          scan-ref: ${{ inputs.scan-type == 'image' && inputs.image-ref || inputs.scan-path }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: ${{ inputs.severity }}
+          vuln-type: 'os,library'
+          
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-${{ inputs.scan-type }}'
+
+      - name: Generate Trivy report (human-readable)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: ${{ inputs.scan-type }}
+          scan-ref: ${{ inputs.scan-type == 'image' && inputs.image-ref || inputs.scan-path }}
+          format: 'table'
+          severity: ${{ inputs.severity }}
+          vuln-type: 'os,library'
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && inputs.dependency-review
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: ${{ inputs.fail-on-severity }}
+          comment-summary-in-pr: on-failure
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

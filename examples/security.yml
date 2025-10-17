@@ -1,0 +1,19 @@
+# Exemplo: Security scanning completo
+name: Security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sundays
+
+jobs:
+  security:
+    uses: fercamarg0/actions-templates/.github/workflows/security-scan.yml@v2
+    with:
+      scan-type: fs
+      severity: CRITICAL,HIGH,MEDIUM
+      fail-on-severity: high
+      dependency-review: true

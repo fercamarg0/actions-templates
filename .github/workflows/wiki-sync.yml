@@ -1,0 +1,96 @@
+name: Wiki Sync (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      docs-path:
+        description: "Path to docs directory"
+        required: false
+        default: "docs"
+        type: string
+      sync-readme:
+        description: "Sync README.md to Wiki Home"
+        required: false
+        default: true
+        type: boolean
+      wiki-mappings:
+        description: "JSON mapping of source files to wiki pages (e.g., '{\"docs/ROADMAP.md\":\"Roadmap.md\"}')"
+        required: false
+        default: '{}'
+        type: string
+    secrets:
+      wiki-token:
+        description: "Personal Access Token with repo permissions for Wiki push"
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare wiki pages
+        run: |
+          mkdir -p _wiki
+          
+          # Sync README to Home if enabled
+          if [ "${{ inputs.sync-readme }}" = "true" ] && [ -f README.md ]; then
+            cp README.md _wiki/Home.md
+            echo "✓ Synced README.md → Home.md"
+          fi
+          
+          # Default mappings for common docs
+          if [ -f docs/ROADMAP.md ]; then 
+            cp docs/ROADMAP.md _wiki/Roadmap.md
+            echo "✓ Synced docs/ROADMAP.md → Roadmap.md"
+          fi
+          
+          if [ -f docs/ARCHITECTURE.md ]; then 
+            cp docs/ARCHITECTURE.md _wiki/Architecture.md
+            echo "✓ Synced docs/ARCHITECTURE.md → Architecture.md"
+          fi
+          
+          if [ -f docs/CONTRIBUTING.md ]; then 
+            cp docs/CONTRIBUTING.md _wiki/Contributing.md
+            echo "✓ Synced docs/CONTRIBUTING.md → Contributing.md"
+          fi
+          
+          if [ -f SECURITY.md ]; then 
+            cp SECURITY.md _wiki/Security.md
+            echo "✓ Synced SECURITY.md → Security.md"
+          fi
+          
+          # Custom mappings from JSON input
+          echo '${{ inputs.wiki-mappings }}' | jq -r 'to_entries[] | "\(.key) \(.value)"' | while read src dst; do
+            if [ -f "$src" ]; then
+              cp "$src" "_wiki/$dst"
+              echo "✓ Custom sync: $src → $dst"
+            fi
+          done || true
+
+      - name: Push to Wiki
+        if: github.event_name == 'push'
+        env:
+          WIKI_TOKEN: ${{ secrets.wiki-token }}
+        run: |
+          cd _wiki
+          
+          # Check if there are files to sync
+          if [ -z "$(ls -A)" ]; then
+            echo "⚠️ No files to sync to Wiki"
+            exit 0
+          fi
+          
+          git init
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore(wiki): sync from docs [skip ci]"
+          git branch -M master
+          git remote add origin https://x-access-token:${WIKI_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git
+          git push -f origin master
+          
+          echo "✅ Wiki synchronized successfully"

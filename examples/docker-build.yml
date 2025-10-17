@@ -1,0 +1,26 @@
+# Exemplo: Build e push de imagem Docker para GHCR
+name: Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    uses: fercamarg0/actions-templates/.github/workflows/docker-build-push.yml@v2
+    with:
+      registry: ghcr.io
+      image-name: ${{ github.repository }}
+      platforms: linux/amd64,linux/arm64
+      dockerfile: Dockerfile
+      context: .
+      push: ${{ github.event_name != 'pull_request' }}
+      sbom: true
+      provenance: true
+    secrets:
+      registry-username: ${{ github.actor }}
+      registry-token: ${{ secrets.GITHUB_TOKEN }}

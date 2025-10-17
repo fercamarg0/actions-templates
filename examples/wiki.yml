@@ -1,0 +1,19 @@
+# Exemplo: Sincronização automática de Wiki
+name: Wiki Sync
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'SECURITY.md'
+
+jobs:
+  sync:
+    uses: fercamarg0/actions-templates/.github/workflows/wiki-sync.yml@v2
+    with:
+      sync-readme: true
+      docs-path: docs
+    secrets:
+      wiki-token: ${{ secrets.WIKI_PUSH_TOKEN }}
